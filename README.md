@@ -1,11 +1,4 @@
-<!DOCTYPE html>
-<html lang='en'>
-<head>
-  <meta charset='utf-8'>
-  <title>VeritasChain Protocol SDK Specification v1.0</title>
-</head>
-<body>
-  <h1>VeritasChain Protocol SDK Specification v1.0</h1>
+<h1>VeritasChain Protocol SDK Specification v1.0</h1>
 
   <p>
     This repository defines the Software Development Kit specification for
@@ -67,5 +60,20 @@
     so that implementations in all supported languages stay aligned with the VeritasChain
     Protocol VCP v1 series.
   </p>
-</body>
-</html>
+
+  <p>
+  For conformance testing and example payloads, see
+  <a href='https://github.com/veritaschain/vcp-conformance-guide'>
+    vcp-conformance-guide
+  </a>.
+</p>
+
+<h2>Conformance Testing & Example Payloads</h2>
+<p>
+  Official VCP v1.0 conformance tests and example payload collections are available at:<br>
+  <a href='https://github.com/veritaschain/vcp-conformance-guide'>
+    https://github.com/veritaschain/vcp-conformance-guide
+  </a>
+</p>
+
+
