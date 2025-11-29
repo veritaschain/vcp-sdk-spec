@@ -1,5 +1,19 @@
 <h1>VeritasChain Protocol SDK Specification v1.0</h1>
 
+## ⚡ Quick Start (5 Minutes)
+
+Try VCP without installing any SDK:
+```bash
+# Install HTTP client
+pip install httpx
+
+# Run quickstart
+curl -O https://raw.githubusercontent.com/veritaschain/vcp-spec/main/examples/python/quickstart.py
+python quickstart.py
+```
+
+📚 **Full Guide:** [docs/QUICKSTART.md](./docs/QUICKSTART.md)
+
   <p>
     This repository defines the Software Development Kit specification for
     VeritasChain Protocol VCP.
