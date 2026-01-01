@@ -2,7 +2,7 @@
   <img src="https://veritaschain.org/assets/img/logo.png" alt="VeritasChain Protocol" width="150"/>
 </p>
 
-<h1 align="center">VCP SDK Specification v1.0</h1>
+<h1 align="center">VCP SDK Specification v1.1</h1>
 
 <p align="center">
   <strong>SDK Interface Specification for VeritasChain Protocol</strong><br/>
@@ -39,7 +39,7 @@
 - **PrevHash**: Now OPTIONAL (simplifies implementation)
 - **VCP-XREF**: Dual logging extension for multi-party verification
 - **Error Events**: Standardized ERR_* event types
-- 
+
 ---
 
 ## 📖 Overview
