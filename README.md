@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.0-blue?style=flat-square" alt="Version"/>
+  <img src="https://img.shields.io/badge/Version-1.1-blue?style=flat-square" alt="Version"/>
   <img src="https://img.shields.io/badge/Status-Release%20Candidate-yellow?style=flat-square" alt="Status"/>
   <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="License"/>
 </p>
@@ -23,6 +23,23 @@
   <a href="#-examples">Examples</a>
 </p>
 
+---
+
+## 📚 Documentation
+
+| Document | Version | Status |
+|----------|---------|--------|
+| [SDK Specification](./VCP_SDK_SPECIFICATION_v1_0_EN.md) | 1.0 | Release Candidate |
+| [Implementation Guide](./VCP_IMPLEMENTATION_GUIDE_v1_1.md) | 1.1 | **Production Ready** |
+
+## What's New in v1.1
+
+- **External Anchoring**: REQUIRED for all tiers (including Silver)
+- **Policy Identification**: REQUIRED field in all events
+- **PrevHash**: Now OPTIONAL (simplifies implementation)
+- **VCP-XREF**: Dual logging extension for multi-party verification
+- **Error Events**: Standardized ERR_* event types
+- 
 ---
 
 ## 📖 Overview
