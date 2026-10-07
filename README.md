@@ -32,6 +32,11 @@
 | [SDK Specification](./VCP_SDK_SPECIFICATION_v1_0_EN.md) | 1.0 | Release Candidate |
 | [Implementation Guide](./VCP_IMPLEMENTATION_GUIDE_v1_1.md) | 1.1 | **Production Ready** |
 
+**Scope of this correction:** The Merkle examples and regression tests below
+target the **VCP v1.1 implementation materials** and RFC 6962 §§2.1–2.1.1.
+They do not establish or claim VCP v1.2 conformance. The historical v1.0 SDK
+specification is unchanged; use the corrected v1.1 Merkle examples here.
+
 ## What's New in v1.1
 
 - **External Anchoring**: REQUIRED for all tiers (including Silver)
@@ -85,6 +90,20 @@ curl -H "Authorization: Bearer $VCP_API_KEY" \
 
 ### Python Example (Direct API Call)
 
+In this v1.1 example, each leaf's data is the **decoded 32-byte `event_hash`**,
+not its hexadecimal text or a precomputed Merkle leaf hash. Apply SHA-256 to
+`0x00 || event_hash_bytes` once, then to `0x01 || left || right` at each parent.
+`proof_path` is ordered from leaf to root; `position` is the sibling's side.
+`tree_size` is required to check the path shape; missing or malformed fields
+fail verification. These are SHA-256 examples.
+
+Comparing with a root returned by the same API only checks internal consistency.
+For independent verification, supply a root and tree size authenticated through
+an independently verified anchor/checkpoint, and an event hash recomputed from
+the event using the applicable canonicalization rules. The API demo below does
+not verify an external anchor, event canonicalization, signatures, or full VCP
+conformance.
+
 ```python
 """
 quickstart.py - VCP in 2 minutes (no SDK required)
@@ -93,12 +112,60 @@ import os
 import hashlib
 import httpx
 
+
+def verify_merkle_proof(proof: dict, expected_event_hash: str,
+                        expected_root: str) -> bool:
+    """Verify inclusion against the supplied root, not its authenticity."""
+    def decode_hash(value: str) -> bytes:
+        if not isinstance(value, str) or len(value) != 64:
+            raise ValueError("expected a 32-byte hex hash")
+        decoded = bytes.fromhex(value)
+        if len(decoded) != 32:
+            raise ValueError("expected a 32-byte hex hash")
+        return decoded
+
+    try:
+        event_hash = decode_hash(expected_event_hash)
+        root = decode_hash(expected_root)
+        if decode_hash(proof["event_hash"]) != event_hash:
+            return False
+        if decode_hash(proof["merkle_root"]) != root:
+            return False
+        size = proof["tree_size"]
+        path = proof["proof_path"]
+        if type(size) is not int or size < 1 or not isinstance(path, list):
+            return False
+
+        # Check the RFC 6962 tree shape from root to leaf. No index field is
+        # required: the sibling positions select a branch at each split.
+        for step in reversed(path):
+            if size <= 1 or step["position"] not in ("left", "right"):
+                return False
+            k = 1 << ((size - 1).bit_length() - 1)
+            size = size - k if step["position"] == "left" else k
+        if size != 1:
+            return False  # missing siblings
+
+        # event_hash is leaf DATA, not the already-prefixed Merkle leaf hash.
+        current = hashlib.sha256(b'\x00' + event_hash).digest()
+        for step in path:
+            sibling = decode_hash(step["hash"])
+            if step["position"] == "left":
+                current = hashlib.sha256(b'\x01' + sibling + current).digest()
+            else:
+                current = hashlib.sha256(b'\x01' + current + sibling).digest()
+        return current == root
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
 API_BASE = "https://explorer.veritaschain.org/api/v1"
 API_KEY = os.environ.get("VCP_API_KEY", "your-api-key")
 headers = {"Authorization": f"Bearer {API_KEY}"}
 
 # 1. Get recent events
 response = httpx.get(f"{API_BASE}/events", headers=headers, params={"limit": 3})
+response.raise_for_status()
 events = response.json().get("events", [])
 
 for event in events:
@@ -109,25 +176,35 @@ for event in events:
 if events:
     event_id = events[0]["header"]["event_id"]
     proof_response = httpx.get(f"{API_BASE}/events/{event_id}/proof", headers=headers)
+    proof_response.raise_for_status()
     proof = proof_response.json()
-    
-    # Client-side verification (no server trust!)
-    current = bytes.fromhex(proof["event_hash"])
-    for step in proof.get("proof_path", []):
-        sibling = bytes.fromhex(step["hash"])
-        if step["position"] == "left":
-            current = hashlib.sha256(sibling + current).digest()
-        else:
-            current = hashlib.sha256(current + sibling).digest()
-    
-    is_valid = current.hex() == proof["merkle_root"]
-    print(f"\n{'✅ VERIFIED' if is_valid else '❌ FAILED'}: Merkle proof")
+
+    # API-supplied values: this checks consistency, not independent anchoring.
+    is_valid = verify_merkle_proof(
+        proof,
+        expected_event_hash=events[0]["security"]["event_hash"],
+        expected_root=proof.get("merkle_root"),
+    )
+    print(f"\n{'✅ MATCH' if is_valid else '❌ FAILED'}: Merkle inclusion (API root)")
 ```
 
 ```bash
 pip install httpx
 python quickstart.py
 ```
+
+### Merkle Regression Tests (Offline)
+
+Run from this repository's root (Python 3.10+ and Node.js 22.18+):
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+The suite executes the actual documentation snippets, checks frozen root and
+audit-path values for empty, single, even, and odd leaf counts, and verifies
+Python/TypeScript-generated proofs with the README verifier. See
+[`tests/README.md`](./tests/README.md) for vector provenance and limits.
 
 ### TypeScript Example
 
