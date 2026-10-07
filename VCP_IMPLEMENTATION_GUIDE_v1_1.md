@@ -9,6 +9,13 @@
 
 ---
 
+**Merkle erratum (2026-10-08):** The Python and TypeScript Merkle examples now
+use RFC 6962 §§2.1–2.1.1 for empty roots, unbalanced trees, and audit paths.
+This correction is scoped to **VCP v1.1 implementation materials**; it neither
+upgrades this guide to VCP v1.2 nor claims verified VCP v1.2 conformance.
+The regression tests validate the Merkle examples, not this guide's other
+illustrative code or full protocol conformance.
+
 ## Table of Contents
 
 1. [Overview](#1-overview)
@@ -170,44 +177,101 @@ security = {
 
 ### 3.3 Layer 2: Collection Integrity
 
-Events are batched into RFC 6962 Merkle trees:
+Events are batched using [RFC 6962 §2.1 and §2.1.1](https://www.rfc-editor.org/rfc/rfc6962#section-2.1).
+For these SHA-256 examples, leaf data is the decoded 32-byte `event_hash`:
+
+- Empty root: `SHA256(b"")`, not 32 zero bytes.
+- Single leaf: `SHA256(0x00 || event_hash_bytes)`.
+- Internal node: `SHA256(0x01 || left_subtree_root || right_subtree_root)`.
+- For `n > 1`, split at the largest power of two **strictly less than `n`**.
+  Never duplicate an unpaired leaf or subtree.
+
+`proof(index)` implements the same recursive partition for audit paths. It
+returns bottom-up sibling hashes; `position` names the sibling's side.
+A single leaf has an empty path; an empty tree has no inclusion proof.
+The examples store prefixed leaf hashes internally; callers pass unprefixed
+event hashes to `add()` and the [README verifier](./README.md#python-example-direct-api-call).
+Existing roots made by the former zero-root/duplicate-last algorithm are not
+RFC 6962 roots for the affected sizes. Preserve historical evidence with its
+original algorithm identified; do not silently relabel or overwrite anchors.
+
+The class below is also repeated in §9.1 so that example remains self-contained:
 
 ```python
+import hashlib
+
+
 class MerkleTree:
-    """RFC 6962 compliant Merkle Tree."""
-    
-    LEAF_PREFIX = b'\x00'
-    NODE_PREFIX = b'\x01'
-    
+    """RFC 6962 tree over decoded 32-byte event hashes (v1.1 example)."""
+
     def __init__(self):
-        self.leaves = []
-    
+        self.leaves: list[bytes] = []
+
     def add(self, event_hash: str):
-        """Add event hash as leaf."""
-        leaf = hashlib.sha256(
-            self.LEAF_PREFIX + bytes.fromhex(event_hash)
+        """Hash the event-hash bytes as leaf data, exactly once."""
+        if not isinstance(event_hash, str) or len(event_hash) != 64:
+            raise ValueError("event_hash must be 64 hexadecimal characters")
+        data = bytes.fromhex(event_hash)
+        if len(data) != 32:
+            raise ValueError("event_hash must encode exactly 32 bytes")
+        self.leaves.append(hashlib.sha256(b'\x00' + data).digest())
+
+    def _root(self, start: int, size: int) -> bytes:
+        if size == 0:
+            return hashlib.sha256(b'').digest()
+        if size == 1:
+            return self.leaves[start]
+        # Largest power of two strictly smaller than size (RFC 6962 §2.1).
+        k = 1 << ((size - 1).bit_length() - 1)
+        return hashlib.sha256(
+            b'\x01' + self._root(start, k) + self._root(start + k, size - k)
         ).digest()
-        self.leaves.append(leaf)
-    
+
     def root(self) -> str:
-        """Compute Merkle root."""
-        if not self.leaves:
-            return "0" * 64
-        
-        nodes = self.leaves.copy()
-        while len(nodes) > 1:
-            if len(nodes) % 2 == 1:
-                nodes.append(nodes[-1])
-            
-            next_level = []
-            for i in range(0, len(nodes), 2):
-                combined = hashlib.sha256(
-                    self.NODE_PREFIX + nodes[i] + nodes[i+1]
-                ).digest()
-                next_level.append(combined)
-            nodes = next_level
-        
-        return nodes[0].hex()
+        return self._root(0, len(self.leaves)).hex()
+
+    def proof(self, index: int) -> list[dict[str, str]]:
+        """Bottom-up audit path; position describes the sibling's side."""
+        if type(index) is not int or not 0 <= index < len(self.leaves):
+            raise ValueError("leaf index out of range")
+
+        def path(start: int, size: int, offset: int) -> list[dict[str, str]]:
+            if size == 1:
+                return []
+            k = 1 << ((size - 1).bit_length() - 1)
+            if offset < k:
+                return path(start, k, offset) + [{
+                    "hash": self._root(start + k, size - k).hex(),
+                    "position": "right",
+                }]
+            return path(start + k, size - k, offset - k) + [{
+                "hash": self._root(start, k).hex(),
+                "position": "left",
+            }]
+
+        return path(0, len(self.leaves), index)
+
+    def reset(self):
+        self.leaves = []
+```
+
+For a batch of event hashes, generate a proof accepted by the README verifier:
+
+```python
+event_hashes = ["00" * 32, "01" * 32, "02" * 32]
+tree = MerkleTree()
+for event_hash in event_hashes:
+    tree.add(event_hash)
+index = 2
+proof = {
+    "event_hash": event_hashes[index],
+    "merkle_root": tree.root(),
+    "tree_size": len(event_hashes),
+    "proof_path": tree.proof(index),
+}
+# The last leaf of a three-leaf tree has ONE sibling: the first-two-leaf root.
+# verify_merkle_proof(proof, event_hashes[index], tree.root()) returns True.
+# Independently authenticate the expected root and tree size in production.
 ```
 
 ### 3.4 Layer 3: External Verifiability
@@ -707,32 +771,59 @@ import hashlib
 import json
 import uuid
 from datetime import datetime, timezone
-from typing import List
 
 # --- Merkle Tree ---
 
 class MerkleTree:
+    """RFC 6962 tree over decoded 32-byte event hashes (v1.1 example)."""
+
     def __init__(self):
-        self.leaves: List[bytes] = []
-    
+        self.leaves: list[bytes] = []
+
     def add(self, event_hash: str):
-        leaf = hashlib.sha256(b'\x00' + bytes.fromhex(event_hash)).digest()
-        self.leaves.append(leaf)
-    
+        """Hash the event-hash bytes as leaf data, exactly once."""
+        if not isinstance(event_hash, str) or len(event_hash) != 64:
+            raise ValueError("event_hash must be 64 hexadecimal characters")
+        data = bytes.fromhex(event_hash)
+        if len(data) != 32:
+            raise ValueError("event_hash must encode exactly 32 bytes")
+        self.leaves.append(hashlib.sha256(b'\x00' + data).digest())
+
+    def _root(self, start: int, size: int) -> bytes:
+        if size == 0:
+            return hashlib.sha256(b'').digest()
+        if size == 1:
+            return self.leaves[start]
+        # Largest power of two strictly smaller than size (RFC 6962 §2.1).
+        k = 1 << ((size - 1).bit_length() - 1)
+        return hashlib.sha256(
+            b'\x01' + self._root(start, k) + self._root(start + k, size - k)
+        ).digest()
+
     def root(self) -> str:
-        if not self.leaves:
-            return "0" * 64
-        
-        nodes = self.leaves.copy()
-        while len(nodes) > 1:
-            if len(nodes) % 2:
-                nodes.append(nodes[-1])
-            nodes = [
-                hashlib.sha256(b'\x01' + nodes[i] + nodes[i+1]).digest()
-                for i in range(0, len(nodes), 2)
-            ]
-        return nodes[0].hex()
-    
+        return self._root(0, len(self.leaves)).hex()
+
+    def proof(self, index: int) -> list[dict[str, str]]:
+        """Bottom-up audit path; position describes the sibling's side."""
+        if type(index) is not int or not 0 <= index < len(self.leaves):
+            raise ValueError("leaf index out of range")
+
+        def path(start: int, size: int, offset: int) -> list[dict[str, str]]:
+            if size == 1:
+                return []
+            k = 1 << ((size - 1).bit_length() - 1)
+            if offset < k:
+                return path(start, k, offset) + [{
+                    "hash": self._root(start + k, size - k).hex(),
+                    "position": "right",
+                }]
+            return path(start + k, size - k, offset - k) + [{
+                "hash": self._root(start, k).hex(),
+                "position": "left",
+            }]
+
+        return path(0, len(self.leaves), index)
+
     def reset(self):
         self.leaves = []
 
@@ -859,27 +950,58 @@ class MerkleTree {
   private leaves: Buffer[] = [];
 
   add(eventHash: string): void {
-    const leaf = createHash('sha256')
+    if (typeof eventHash !== 'string' || eventHash.length !== 64 ||
+        !/^[0-9a-fA-F]{64}$/.test(eventHash)) {
+      throw new Error('eventHash must be 64 hexadecimal characters');
+    }
+    this.leaves.push(createHash('sha256')
       .update(Buffer.concat([Buffer.from([0x00]), Buffer.from(eventHash, 'hex')]))
+      .digest());
+  }
+
+  private split(size: number): number {
+    let k = 1;
+    while (k * 2 < size) k *= 2;
+    return k;
+  }
+
+  private subtreeRoot(start: number, size: number): Buffer {
+    if (size === 0) return createHash('sha256').update(Buffer.alloc(0)).digest();
+    if (size === 1) return this.leaves[start];
+    const k = this.split(size);
+    return createHash('sha256')
+      .update(Buffer.concat([
+        Buffer.from([0x01]),
+        this.subtreeRoot(start, k),
+        this.subtreeRoot(start + k, size - k),
+      ]))
       .digest();
-    this.leaves.push(leaf);
   }
 
   root(): string {
-    if (this.leaves.length === 0) return '0'.repeat(64);
-    
-    let nodes = [...this.leaves];
-    while (nodes.length > 1) {
-      if (nodes.length % 2 === 1) nodes.push(nodes[nodes.length - 1]);
-      const next: Buffer[] = [];
-      for (let i = 0; i < nodes.length; i += 2) {
-        next.push(createHash('sha256')
-          .update(Buffer.concat([Buffer.from([0x01]), nodes[i], nodes[i + 1]]))
-          .digest());
-      }
-      nodes = next;
+    return this.subtreeRoot(0, this.leaves.length).toString('hex');
+  }
+
+  proof(index: number): Array<{ hash: string; position: 'left' | 'right' }> {
+    if (!Number.isInteger(index) || index < 0 || index >= this.leaves.length) {
+      throw new Error('leaf index out of range');
     }
-    return nodes[0].toString('hex');
+    const path = (start: number, size: number, offset: number):
+      Array<{ hash: string; position: 'left' | 'right' }> => {
+      if (size === 1) return [];
+      const k = this.split(size);
+      if (offset < k) {
+        return [...path(start, k, offset), {
+          hash: this.subtreeRoot(start + k, size - k).toString('hex'),
+          position: 'right',
+        }];
+      }
+      return [...path(start + k, size - k, offset - k), {
+        hash: this.subtreeRoot(start, k).toString('hex'),
+        position: 'left',
+      }];
+    };
+    return path(0, this.leaves.length, index);
   }
 
   reset(): void {
@@ -1145,6 +1267,23 @@ security = {
 | Digital Signature | ✓ | ✓ | ✓ |
 
 ### 11.2 Running Tests
+
+**Local Merkle regression tests (v1.1 examples only):**
+
+```bash
+# Python 3.10+ and Node.js 22.18+; no Python/npm packages or network required
+python -m unittest discover -s tests -v
+```
+
+These tests execute the Python tree examples in §§3.3 and 9.1, the TypeScript
+tree in §9.2, and the README proof verifier directly from their code fences.
+Frozen known values cover 0–8 leaves, including unbalanced 3-, 5-, 6-, and
+7-leaf trees. Round trips, cross-language paths, tampering, malformed inputs,
+and regressions to missing prefixes or duplicate-last trees are checked.
+See [test/vector documentation](./tests/README.md). Passing these checks is
+not a v1.1 certification or a VCP v1.2 conformance declaration.
+
+**Broader conformance tooling (existing guidance):**
 
 ```bash
 pip install vcp-conformance-test
