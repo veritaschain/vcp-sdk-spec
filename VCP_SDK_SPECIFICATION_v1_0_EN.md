@@ -442,7 +442,7 @@ Event 3
 
 | Attribute | Value |
 |-----------|-------|
-| Package Name | `@veritaschain/vcp-sdk` |
+| Proposed Package Name | `@veritaschain/vcp-sdk` (unpublished as checked 2026-10-22 JST) |
 | Registry | npm |
 | Runtime | Node.js 18+ / Browser (ES2020) |
 | TypeScript | 5.0+ |
@@ -450,11 +450,9 @@ Event 3
 
 **Installation:**
 
-```bash
-npm install @veritaschain/vcp-sdk
-# or
-yarn add @veritaschain/vcp-sdk
-```
+No installation command is available. The public npm registry returned 404
+for this proposed name on 2026-10-22 (JST). This historical interface specification
+does not establish a published package; wait for a verified VSO release.
 
 ### 4.2 Core Types
 
@@ -1432,18 +1430,18 @@ if (cert.anchor) {
 
 | Attribute | Value |
 |-----------|-------|
-| Package Name | `vcp-sdk` |
+| Historical Proposed Name | `vcp-sdk` — not a VSO package; see warning below |
 | Registry | PyPI |
 | Python | 3.10+ |
 | License | Apache 2.0 |
 
 **Installation:**
 
-```bash
-pip install vcp-sdk
-# or
-poetry add vcp-sdk
-```
+**Do not install `vcp-sdk` for VeritasChain Protocol (VCP).** As checked on
+2026-10-22 (JST), that PyPI package is the unrelated **Value Context Protocol**
+SDK. The name in this historical specification was a proposal, not a verified
+VSO release. No replacement package name or installation command is provided
+until an official release and its publisher can be verified.
 
 **Dependencies:**
 

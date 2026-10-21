@@ -230,15 +230,19 @@ async function main() {
 main();
 ```
 
-### When SDK Packages Are Available
+### SDK Packages — Coming Soon
 
-```bash
-# Python (coming soon)
-pip install veritaschain
+As checked on **2026-10-22 (JST)**, the public registries returned 404 for
+npm `@veritaschain/sdk` and `@veritaschain/vcp-sdk`, and PyPI `veritaschain`
+and `veritaschain-sdk`. No public VSO release was verified under those names.
+Do not install them using historical or planned examples. A later registration
+would not by itself establish VSO ownership or authenticity.
 
-# TypeScript (coming soon)
-npm install @veritaschain/sdk
-```
+PyPI `vcp-sdk` is published by the unrelated **Value Context Protocol** project;
+it is not the VeritasChain Protocol (VCP) SDK. Use the direct API examples above
+or the [Python reference implementation](https://github.com/veritaschain/vcp-rta-reference)
+while SDK packages are being prepared. Official installation commands will be
+provided after publication and publisher verification.
 
 ---
 
@@ -253,7 +257,7 @@ npm install @veritaschain/sdk
 ### Language-Specific Notes
 
 #### TypeScript
-- Node.js 18+ and modern browsers
+- Node.js 24.22.1 or a later 24.x patch, and modern browsers
 - Full async/await support
 - Browser-compatible Merkle verification
 
