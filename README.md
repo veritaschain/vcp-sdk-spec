@@ -230,6 +230,17 @@ async function main() {
 main();
 ```
 
+### Offline core for VCP v1.2: `veritaschain/vcp-sdk`
+
+[veritaschain/vcp-sdk](https://github.com/veritaschain/vcp-sdk) (v0.1.0,
+pre-release, first-party) is a separate library for producing and verifying
+VCP **v1.2** events offline in Python, TypeScript and MQL5: canonical hashing,
+RFC 6962 Merkle trees, Ed25519 signatures and three-valued verification. It is
+**not** an implementation of this specification, which targets VCP v1.1 and the
+VeritasChain Cloud / Explorer API clients. It installs from the GitHub
+repository only; it is not published to PyPI or npm. A `VALID` result from its
+verifier is not a conformance claim.
+
 ### SDK Packages — Coming Soon
 
 As checked on **2026-10-22 (JST)**, the public registries returned 404 for
