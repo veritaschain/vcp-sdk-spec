@@ -2,7 +2,7 @@
   <img src="https://veritaschain.org/assets/img/logo.png" alt="VeritasChain Protocol" width="150"/>
 </p>
 
-<h1 align="center">VCP SDK Specification v1.1</h1>
+<h1 align="center">VCP SDK Specification</h1>
 
 <p align="center">
   <strong>SDK Interface Specification for VeritasChain Protocol</strong><br/>
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Version-1.1-blue?style=flat-square" alt="Version"/>
-  <img src="https://img.shields.io/badge/Status-Release%20Candidate-yellow?style=flat-square" alt="Status"/>
+  <img src="https://img.shields.io/badge/SDK%20Specification-1.0%20(Release%20Candidate)-yellow?style=flat-square" alt="SDK Specification 1.0, Release Candidate"/>
+  <img src="https://img.shields.io/badge/Implementation%20Guide-1.1%20(informative)-blue?style=flat-square" alt="Implementation Guide 1.1, informative"/>
   <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="License"/>
 </p>
 
@@ -19,9 +19,15 @@
   <a href="#-quick-start">Quick Start</a> •
   <a href="#-supported-languages">Languages</a> •
   <a href="#-sdk-components">Components</a> •
-  <a href="#-specification">Specification</a> •
+  <a href="#-specification-document">Specification</a> •
   <a href="#-examples">Examples</a>
 </p>
+
+This repository holds the **SDK Specification v1.0** (Release Candidate,
+2025-11-25) and the **VCP Implementation Guide v1.1** (informative). It does
+not contain an SDK Specification v1.1; the "v1.1" items below refer to VCP
+protocol v1.1 and the implementation guide. The current VCP release is
+[v1.2](https://github.com/veritaschain/vcp-spec/tree/main/spec/v1.2).
 
 ---
 
@@ -30,7 +36,7 @@
 | Document | Version | Status |
 |----------|---------|--------|
 | [SDK Specification](./VCP_SDK_SPECIFICATION_v1_0_EN.md) | 1.0 | Release Candidate |
-| [Implementation Guide](./VCP_IMPLEMENTATION_GUIDE_v1_1.md) | 1.1 | **Production Ready** |
+| [Implementation Guide](./VCP_IMPLEMENTATION_GUIDE_v1_1.md) | 1.1 | Informative; VCP v1.1 (published, untagged) |
 
 **Scope of this correction:** The Merkle examples and regression tests below
 target the **VCP v1.1 implementation materials** and RFC 6962 §§2.1–2.1.1.
@@ -378,17 +384,27 @@ The complete SDK specification is available in:
 
 ### Event Type Reference
 
+Fixed codes from the VCP v1.0 registry (VCP v1.0 §3.2.1; SDK Specification §3.2).
+Modules follow VCP v1.0 §3.2.2 ("Required Extensions").
+
 | Code | Type | Description | Module |
 |------|------|-------------|--------|
-| 1 | `SIG` | Trading signal | VCP-GOV |
-| 2 | `ORD` | Order submitted | VCP-TRADE |
+| 1 | `SIG` | Signal/decision generated | VCP-GOV |
+| 2 | `ORD` | Order sent | VCP-TRADE, VCP-RISK |
 | 3 | `ACK` | Order acknowledged | VCP-TRADE |
-| 4 | `EXE` | Order executed | VCP-TRADE |
-| 5 | `CXL` | Order cancelled | VCP-TRADE |
-| 6 | `REJ` | Order rejected | VCP-TRADE |
-| 20 | `RSK` | Risk snapshot | VCP-RISK |
-| 90 | `HBT` | Heartbeat | VCP-CORE |
-| 91 | `ERR` | System error | VCP-CORE |
+| 4 | `EXE` | Full execution | VCP-TRADE |
+| 5 | `PRT` | Partial fill | VCP-TRADE |
+| 6 | `REJ` | Order rejected | VCP-TRADE, VCP-RISK |
+| 7 | `CXL` | Order cancelled | VCP-TRADE |
+| 8 | `MOD` | Order modified | VCP-TRADE, VCP-GOV |
+| 9 | `CLS` | Position closed | VCP-TRADE |
+| 20 | `ALG` | Algorithm update | VCP-GOV |
+| 21 | `RSK` | Risk parameter change | VCP-RISK |
+| 22 | `AUD` | Audit request | VCP-GOV |
+| 98 | `HBT` | Heartbeat | VCP-CORE |
+| 99 | `ERR` | Error | VCP-CORE |
+| 100 | `REC` | Recovery | VCP-RECOVERY |
+| 101 | `SNC` | Clock sync status | VCP-CORE |
 
 ### Sample Event (Order)
 
@@ -434,7 +450,7 @@ The complete SDK specification is available in:
     "timestamp_int": "1732492860000000000",
     "timestamp_iso": "2025-11-25T00:01:00.000000000Z",
     "event_type": "RSK",
-    "event_type_code": 20,
+    "event_type_code": 21,
     "venue_id": "RISK_ENGINE",
     "symbol": "PORTFOLIO",
     "account_id": "acc_hash_abc123"

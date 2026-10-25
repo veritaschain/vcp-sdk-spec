@@ -1,7 +1,7 @@
 # VCP Implementation Guide v1.1
 
-**Document ID:** VSO-IMPL-001  
-**Status:** Production Ready  
+**Document ID:** VSO-IMPL-001 (the same ID is used by the VCP v1.1 implementation guide in [vcp-docs](https://github.com/veritaschain/vcp-docs/tree/main/standards/vcp/v1.1); the two are separate documents)  
+**Status:** Informative; VCP v1.1 (published, untagged) — status revised 2026-10-25  
 **Version:** 1.1.0  
 **Date:** 2025-12-30  
 **Maintainer:** VeritasChain Standards Organization (VSO)  
@@ -753,7 +753,7 @@ VCP-XREF enables **dual logging** - multiple parties record the same transaction
 
 | Scenario | Benefit |
 |----------|---------|
-| **Prop Firm Trading** | Prevent payout disputes |
+| **Prop Firm Trading** | Make one party's omission or modification detectable to the other |
 | **Broker Execution** | Verify best execution |
 | **Regulatory Audit** | Independent verification |
 
