@@ -1,11 +1,17 @@
 # VeritasChain Protocol SDK Specification v1.0
 
 **Document ID:** VSO-SDK-SPEC-001  
-**Status:** Release Candidate  
+**Status:** Historical Release Candidate (2025-11-25; retained for reference)<br>
 **Version:** 1.0.0  
 **Date:** 2025-11-25  
 **Maintainer:** VeritasChain Standards Organization (VSO)  
 **License:** Apache 2.0
+
+> **Editorial status clarification — 2026-11-02.** This is the historical v1.0
+> SDK interface candidate, not a current protocol release or a released SDK
+> package. The repository separately contains an informative v1.1 implementation
+> guide; this note does not create an SDK Specification v1.1 or change the
+> interface requirements and examples below. See the [current repository scope](README.md).
 
 ---
 
@@ -3729,6 +3735,7 @@ See individual language sections for complete type definitions.
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-25 | VSO | Initial release |
+| 1.0.0 (editorial) | 2026-11-02 | VSO | Label the retained Release Candidate as historical; interface requirements and examples unchanged |
 
 ---
 
