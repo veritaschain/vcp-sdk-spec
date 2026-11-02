@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/SDK%20Specification-1.0%20(Release%20Candidate)-yellow?style=flat-square" alt="SDK Specification 1.0, Release Candidate"/>
+  <img src="https://img.shields.io/badge/SDK%20Specification-1.0%20(Historical%20RC)-yellow?style=flat-square" alt="SDK Specification 1.0, Historical Release Candidate"/>
   <img src="https://img.shields.io/badge/Implementation%20Guide-1.1%20(informative)-blue?style=flat-square" alt="Implementation Guide 1.1, informative"/>
   <img src="https://img.shields.io/badge/License-Apache%202.0-green?style=flat-square" alt="License"/>
 </p>
@@ -23,7 +23,7 @@
   <a href="#-examples">Examples</a>
 </p>
 
-This repository holds the **SDK Specification v1.0** (Release Candidate,
+This repository holds the **SDK Specification v1.0** (historical Release Candidate,
 2025-11-25) and the **VCP Implementation Guide v1.1** (informative). It does
 not contain an SDK Specification v1.1; the "v1.1" items below refer to VCP
 protocol v1.1 and the implementation guide. The current VCP release is
@@ -35,13 +35,15 @@ protocol v1.1 and the implementation guide. The current VCP release is
 
 | Document | Version | Status |
 |----------|---------|--------|
-| [SDK Specification](./VCP_SDK_SPECIFICATION_v1_0_EN.md) | 1.0 | Release Candidate |
+| [SDK Specification](./VCP_SDK_SPECIFICATION_v1_0_EN.md) | 1.0 | Historical Release Candidate (2025-11-25) |
 | [Implementation Guide](./VCP_IMPLEMENTATION_GUIDE_v1_1.md) | 1.1 | Informative; VCP v1.1 (published, untagged) |
 
 **Scope of this correction:** The Merkle examples and regression tests below
 target the **VCP v1.1 implementation materials** and RFC 6962 §§2.1–2.1.1.
 They do not establish or claim VCP v1.2 conformance. The historical v1.0 SDK
-specification is unchanged; use the corrected v1.1 Merkle examples here.
+specification's interface requirements and examples are unchanged; its status
+label and revision history were clarified editorially on 2026-11-02. Use the
+corrected v1.1 Merkle examples here.
 
 ## What's New in v1.1
 
