@@ -1283,17 +1283,19 @@ and regressions to missing prefixes or duplicate-last trees are checked.
 See [test/vector documentation](./tests/README.md). Passing these checks is
 not a v1.1 certification or a VCP v1.2 conformance declaration.
 
-**Broader conformance tooling (existing guidance):**
+**Broader conformance tooling — availability correction, 11 November 2026:**
 
-```bash
-pip install vcp-conformance-test
+The previously shown `vcp-conformance-test` package and `vcp-test` commands are
+not supplied by this repository, and their published availability and v1.1
+coverage have not been established. They are withdrawn as runnable installation
+instructions. Use the repository-local regression command above for its stated
+Merkle-example scope.
 
-# Silver tier
-vcp-test --tier silver --version 1.1 ./implementation
-
-# Generate report
-vcp-test --tier silver --version 1.1 --report ./implementation
-```
+The separate [VCP conformance guide](https://github.com/veritaschain/vcp-conformance-guide)
+contains a legacy v1.0 guide and runnable local fixture smoke tests. Follow its
+own README and source commands; those checks do not validate v1.1/v1.2 or
+establish certification. This guide does not provide a full v1.1 conformance
+runner or identify a verified package release.
 
 ---
 
